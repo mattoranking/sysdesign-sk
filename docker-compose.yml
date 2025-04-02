@@ -1,0 +1,61 @@
+networks:
+  frontend: # Exposed network
+  backend:  # Internal network
+
+services:
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - "8008:443" # Map local port 8080 to NGINX port 80
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/dev.crt:/etc/nginx/dev.crt         # Mount SSL certificate
+      - ./nginx/dev.key:/etc/nginx/dev.key         # Mount SSL key
+    depends_on:
+      - user-service
+    networks:
+      - frontend # Only NGINX is on the frontend network
+      - backend # NGINX also communicates with backend services
+
+  user-service:
+    build:
+      context: ./user-service
+    container_name: user-service
+    depends_on:
+      - db
+      - redis
+    environment:
+      - DATABASE_URL=postgresql://postgres:P1ssw0rd$@db:5432/schools_db
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    networks:
+      - backend # Not exposed to the frontend
+  
+  db:
+    image: postgres:latest
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: P1ssw0rd$
+      POSTGRES_DB: schools_db
+    ports:
+      - "5430:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db_init/create_tables.sql:/docker-entrypoint-initdb.d/create_tables.sql  # Mount the SQL script directory
+    networks:
+      - frontend
+      - backend
+  
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6378:6379" # Expose Redis default ports
+    networks:
+      - frontend
+      - backend
+
+volumes:
+    pgdata:
