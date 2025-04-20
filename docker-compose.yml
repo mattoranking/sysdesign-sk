@@ -26,7 +26,7 @@ services:
       - db
       - redis
     environment:
-      - DATABASE_URL=postgresql://postgres:P1ssw0rd$@db:5432/schools_db
+      - DATABASE_URL=postgresql://postgres:P1ssw0rd$@db:5432/user_db
       - REDIS_HOST=redis
       - REDIS_PORT=6379
     networks:
@@ -38,7 +38,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: P1ssw0rd$
-      POSTGRES_DB: schools_db
+      POSTGRES_DB: user_db
     ports:
       - "5430:5432"
     volumes:
